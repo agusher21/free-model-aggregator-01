@@ -228,6 +228,11 @@ function anthropicToOpenAI(body: Json, model: string, stream: boolean): Json {
     }
   }
   const out: Json = { model, stream, messages };
+  // A streamed OpenAI answer carries its usage only when the request asks
+  // for it. Without it the answer cannot be rendered back to the client —
+  // and a 200 the entry discards still counts as a successful provider
+  // call, so the request would fail its one-provider check. Always ask.
+  if (stream) out.stream_options = { include_usage: true };
   if (Array.isArray(body.tools)) {
     out.tools = body.tools
       .filter((tool) => isRecord(tool) && typeof tool.name === 'string')
